@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetroCore OS - Windows XP Streamer Edition</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            /* 🌄 CORREGIDO: Ahora usa el fondo original 'Bliss' de Windows XP que pasaste */
+            background: #5a7edc url('https://wallpapercave.com/wp/wp1814092.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            overflow: hidden;
+        }
+
+        /* PANTALLA DE VERIFICACIÓN (MARCA DE AGUA) */
+        #verification-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, #5a7edc, #2649a2);
+            z-index: 9999999;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .verify-box {
+            background-color: #f0f0f0;
+            border: 3px solid #2446a3;
+            border-radius: 8px;
+            padding: 25px; width: 400px; text-align: center;
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .verify-btn {
+            background: linear-gradient(to bottom, #ce0000, #990000);
+            color: white; border: 1px solid #550000; border-radius: 4px;
+            padding: 10px 20px; font-weight: bold; cursor: pointer; margin: 15px 0;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+        
+        .enter-btn {
+            background: linear-gradient(to bottom, #e1e1e1, #cccccc);
+            border: 1px solid #999; border-radius: 4px; padding: 10px 20px;
+            font-weight: bold; cursor: not-allowed; opacity: 0.6;
+        }
+
+        /* MARCO MODO STREAMER */
+        #streamer-frame {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            border: 5px dashed #00ff00; pointer-events: none; z-index: 999999;
+            display: none; animation: streamPulse 1.5s infinite;
+        }
+        @keyframes streamPulse {
+            0% { border-color: #00ff00; }
+            50% { border-color: #ff00ff; }
+            100% { border-color: #00ff00; }
+        }
+
+        #streamer-chat-box {
+            position: fixed; right: 15px; top: 50px;
+            width: 220px; height: 350px;
+            background: rgba(12, 22, 49, 0.85); border: 2px solid #2446a3; border-radius: 5px;
+            color: #ffffff; font-size: 9.5pt; padding: 8px; overflow-y: auto;
+            z-index: 99999; display: none; font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* BARRA DE TAREAS ESTILO WINDOWS XP */
+        #taskbar {
+            background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #1b4ca3 92%, #163b7e 100%);
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 30px;
+            display: flex; align-items: center; z-index: 9999;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.5);
+        }
+
+        /* BOTÓN INICIO VERDE LUNA DE XP */
+        #start-button {
+            height: 100%; width: 100px;
+            background: linear-gradient(to bottom, #60af47 0%, #398a23 100%);
+            border-top-right-radius: 8px; border-bottom-right-radius: 8px;
+            color: white; font-weight: bold; font-style: italic; font-size: 13pt;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; text-shadow: 1px 1px 2px #225511;
+            border: none; box-shadow: inset -1px 0 2px #225511, 1px 0 3px rgba(0,0,0,0.4);
+        }
+        #start-button:active {
+            background: linear-gradient(to bottom, #398a23 0%, #296419 100%);
+        }
+
+        .taskbar-btn {
+            height: 24px; margin-left: 10px; background: #3873d9; color: white;
+            border: 1px solid #1f4994; border-radius: 3px; font-weight: bold;
+            display: flex; align-items: center; padding: 0 10px; font-size: 9pt; cursor: pointer;
+        }
+
+        #taskbar-time {
+            margin-left: auto; background: linear-gradient(to bottom, #0f69e4, #0046b7);
+            color: white; height: 100%; display: flex; align-items: center;
+            padding: 0 15px; font-size: 9.5pt; border-left: 1px solid #0c3374;
+        }
+
+        /* ESCRITORIO */
+        #desktop { width: 100%; height: calc(100vh - 30px); padding: 20px; display: flex; flex-direction: column; gap: 25px; position: relative; }
+        .desktop-icon { width: 90px; text-align: center; color: white; cursor: pointer; font-size: 9.5pt; display: flex; flex-direction: column; align-items: center; text-shadow: 2px 2px 3px black; font-weight: 500; }
+        .desktop-icon img { width: 36px; height: 36px; margin-bottom: 6px; }
+
+        /* VENTANAS ESTILO XP */
+        .window { width: 500px; background-color: #f1f0e8; border: 3px solid #245edb; border-top-left-radius: 7px; border-top-right-radius: 7px; position: absolute; z-index: 100; display: none; box-shadow: 3px 5px 15px rgba(0,0,0,0.3); }
+        
+        .window-header {
+            background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #1b4ca3 100%);
+            color: white; font-weight: bold; padding: 5px 8px; font-size: 10pt;
+            display: flex; justify-content: space-between; align-items: center; cursor: move;
+        }
+        
+        /* BOTÓN X ROJO DE WINDOWS XP */
+        .window-controls button {
+            background: linear-gradient(to bottom, #e76446 0%, #b83314 100%);
+            color: white; border: 1px solid #7a1b07; border-radius: 3px;
+            width: 20px; height: 16px; font-size: 8pt; font-weight: bold;
+            line-height: 12px; cursor: pointer; padding: 0; box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+
+        .window-body { padding: 12px; font-size: 10pt; color: black; }
+
+        /* SUPERWIUM 2.0 NAVIGATOR */
+        .nav-bar { display: flex; gap: 6px; margin-bottom: 10px; background: #e9e7db; padding: 4px; border-bottom: 1px solid #b5b2a1; }
+        .nav-input { flex-grow: 1; border: 1px solid #7f9db9; padding: 3px 6px; font-size: 9.5pt; border-radius: 2px; }
+        .nav-btn { background: #f0f0f0; border: 1px solid #a0a0a0; border-radius: 3px; cursor: pointer; font-size: 9.5pt; padding: 3px 10px; }
+        .web-content { width: 100%; height: 260px; background-color: white; border: 1px solid #7f9db9; padding: 12px; overflow-y: auto; }
+
+        /* JUEGO SNAKE CANVAS */
+        #snakeGameCanvas { border: 2px solid #7f9db9; background-color: #111; display: block; margin: 0 auto; }
+
+        /* EFECTOS DEL VIRUS Y PANTALLA AZUL (BSOD) */
+        .error-flashing { animation: flashRedXP 0.5s infinite; }
+        @keyframes flashRedXP { 0% { border-color: #245edb; } 50% { border-color: #ff0000; box-shadow: 0 0 15px #ff0000; } 100% { border-color: #245edb; } }
+        #virusMessageBox { width: 340px; background-color: #f1f0e8; border: 3px solid #df2020; border-top-left-radius: 7px; border-top-right-radius: 7px; position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%); z-index: 99999; display: none; box-shadow: 5px 5px 20px rgba(0,0,0,0.4); }
+        #bsod { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #0000aa; color: white; font-family: 'Courier New', monospace; padding: 60px; font-size: 13pt; z-index: 999999; display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="verification-screen">
+        <div class="verify-box">
+            <h2 style="margin-top:0; color:#2446a3;">RetroCore XP: Verificación</h2>
+            <p>Para desbloquear la simulación y activar el panel de descargas, apoya el canal oficial de YouTube.</p>
+            <button class="verify-btn" onclick="visitYoutube()">1. Abrir Canal c00lkidd_v2yt</button>
+            <br><br>
+            <button class="enter-btn" id="btnEnterOS" onclick="unlockDesktop()">2. Cargar Entorno Windows XP</button>
+        </div>
+    </div>
+
+    <div id="streamer-frame"></div>
+    <div id="streamer-chat-box">
+        <div style="color: #00ff00; font-weight: bold; border-bottom: 1px solid #2446a3; padding-bottom:4px; margin-bottom:5px;">🔴 CHAT EN VIVO</div>
+        <div id="chat-lines"></div>
+    </div>
+
+    <div id="desktop">
+        <div class="desktop-icon" onclick="openWindow('superWiumWindow')">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAPFBMVEX///8AAAD/AJD/mZn/zMz/27b/5ub/8vL////////////09PT29vb4+Pj6+vr8/Pz9/f3///999999AAAAAnRSTlMAgJsrUAAAADBJREFUeNpiYIQCBgYwYIQLMDIwM8AEDAzMCHwGZgR+AzMCv4EZgd/AjMBvYIQCBgYAFZgAn9vcl9IAAAAASUVORK5CYII=">
+            <span>SuperWium 2.0</span>
+        </div>
+
+        <div class="desktop-icon" onclick="openWindow('snakeGameWindow')">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAbFBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACEq+R/AAAAA3RSTlMAVv+P8v4A8wAAACpJREFUeNpjYMAGhgsYfWAG5wBOMDkGZgXwYMAHYAZ5BkgAnkByAM5gkAAAmKcBv93pB58AAAAASUVORK5CYII=">
+            <span>Snake Mejorado</span>
+        </div>
+
+        <div class="desktop-icon" onclick="openWindow('virusLabWindow')">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAWlBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACEq+R/AAAAA3RSTlMAVv+P8v4A8wAAACBJREFUeNpjYEADKAZ5BkgA+kGeAREAnEGeAREAORgkAAAf3ACX0f80AAAAAElFTkSuQmCC">
+            <span>Virus Lab XP</span>
+        </div>
+    </div>
+
+    <div class="window" id="superWiumWindow" style="left: 50px; top: 50px;">
+        <div class="window-header">
+            <span>Internet Explorer - SuperWium 2.0</span>
+            <div class="window-controls"><button onclick="closeWindow('superWiumWindow')">X</button></div>
+        </div>
+        <div class="window-body" style="padding:0;">
+            <div class="nav-bar">
+                <button class="nav-btn" onclick="loadWebPage('home')">🏠 Inicio</button>
+                <input type="text" class="nav-input" id="navUrl" value="https://superwium.net/v2" readonly>
+                <button class="nav-btn">Ir</button>
+            </div>
+            <div class="web-content" id="webContentWindow">
+                <h3>SuperWium 2.0 Engine</h3>
+                <p>Navegador retro optimizado para streams. Elige tu sitio:</p>
+                <ul>
+                    <li><a href="#" onclick="loadWebPage('roblox')">Roblox Studio Portal</a></li>
+                    <li><a href="#" onclick="loadWebPage('youtube')">YouTube Analytics Dashboard</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="window" id="snakeGameWindow" style="left: 120px; top: 90px;">
+        <div class="window-header">
+            <span>Snake Arcade Edition</span>
+            <div class="window-controls"><button onclick="closeWindow('snakeGameWindow')">X</button></div>
+        </div>
+        <div class="window-body">
+            <canvas id="snakeGameCanvas" width="320" height="240"></canvas>
+            <p style="text-align: center; margin: 8px 0 0 0; font-weight: bold; font-size:11pt;">Récord Actual: <span id="scoreBoard">0</span> pts</p>
+        </div>
+    </div>
+
+    <div class="window" id="virusLabWindow" style="left: 240px; top: 150px;">
+        <div class="window-header">
+            <span>Malware Simulation Tool v2.1</span>
+            <div class="window-controls"><button onclick="closeWindow('virusLabWindow')">X</button></div>
+        </div>
+        <div class="window-body" id="labBody">
+            <p>Laboratorio seguro para demostraciones en streams de YouTube.</p>
+            <hr style="border:1px solid #d3d1c4;">
+            <p>Estado del Kernel: <span style="color: blue; font-weight: bold;">Estable</span></p>
+            <button onclick="startVirusStage1()" style="padding: 6px 12px; font-weight:bold; cursor: pointer;">Disparar Etapa 1</button>
+        </div>
+    </div>
+
+    <div id="virusMessageBox">
+        <div class="window-header" style="background: linear-gradient(to bottom, #e76446, #b83314); border:none;">
+            <span>Windows XP Fatal Alert</span>
+        </div>
+        <div class="window-body" style="text-align: center;">
+            <p style="color: #b83314; font-weight: bold; font-size:11pt;">SYSTEM INTEGRITY COMPROMISED</p>
+            <p>El simulador ha detectado modificaciones de código desastrosas.</p>
+            <button onclick="triggerBSOD()" style="padding: 5px 20px; font-weight:bold; cursor: pointer;">OK</button>
+        </div>
+    </div>
+
+    <div id="bsod">
+        <p style="background: white; color: #0000aa; display: inline-block; padding: 2px 10px; font-weight:bold;">Windows XP BSOD</p>
+        <p>Un script de virus simulado de 2 etapas ha detenido el núcleo de RetroCore.</p>
+        <p><b>TECHNICAL_ERROR_CODE: 0xXP_SNAKE_SUPERWIUM_FATAL</b></p>
+        <p>Si estás viendo esto en un stream, felicidades, lograste romper el sistema.</p>
+        <br>
+        <p>Presiona F5 en tu teclado para reinstalar y reiniciar RetroCore XP...</p>
+    </div>
+
+    <div id="taskbar">
+        <div id="start-button">inicio</div>
+        <button class="taskbar-btn" id="btnStreamMode" onclick="toggleStreamMode()">🎙️ MODO STREAMER: APAGADO</button>
+        <div id="taskbar-time">00:00 PM</div>
+    </div>
+
+    <script>
+        let zIndex = 100;
+        let verified = false;
+
+        // VERIFICACIÓN DEL CANAL
+        function visitYoutube() {
+            window.open("https://www.youtube.com/@c00lkidd_v2yt", "_blank");
+            verified = true;
+            const btn = document.getElementById('btnEnterOS');
+            btn.style.background = "linear-gradient(to bottom, #60af47, #398a23)";
+            btn.style.color = "white"; btn.style.cursor = "pointer"; btn.style.opacity = "1";
+        }
+
+        function unlockDesktop() {
+            if(verified) {
+                document.getElementById('verification-screen').style.display = 'none';
+                playXpSound(440, 100);
+            } else {
+                alert("Por favor, haz clic en el paso 1 para ver el canal primero.");
+            }
+        }
+
+        // VENTANAS
+        function openWindow(id) {
+            const win = document.getElementById(id);
+            win.style.display = 'block'; win.style.zIndex = ++zIndex;
+            if(id === 'snakeGameWindow') startSnakeGame();
+        }
+        function closeWindow(id) { document.getElementById(id).style.display = 'none'; }
+
+        // SUPERWIUM 2.0 NAV
+        function loadWebPage(page) {
+            const content = document.getElementById('webContentWindow');
+            const urlInput = document.getElementById('navUrl');
+            if(page === 'home') {
+                urlInput.value = "https://superwium.net/v2";
+                content.innerHTML = `<h3>SuperWium 2.0 Engine</h3><p>Navegador retro optimizado para streams. Elige tu sitio:</p><ul><li><a href="#" onclick="loadWebPage('roblox')">Roblox Studio Portal</a></li><li><a href="#" onclick="loadWebPage('youtube')">YouTube Analytics Dashboard</a></li></ul>`;
+            } else if(page === 'roblox') {
+                urlInput.value = "https://roblox.com/studio";
+                content.innerHTML = `<h3>Roblox Studio Connect</h3><p style="color: #245edb; font-weight: bold;">[!] Servidor de simulación activo.</p><p>Listo para subir el nuevo mapa del Reto de las 24 horas.</p>`;
+            } else if(page === 'youtube') {
+                urlInput.value = "https://studio.youtube.com/video_manager";
+                content.innerHTML = `<h3>YouTube Creator Hub</h3><p>Canal oficial conectado: <b>c00lkidd_v2yt</b></p><p style="color: #398a23; font-weight: bold;">Subscriptores actuales: 90/100 (¡Casi listos para el gran especial!).</p>`;
+            }
+        }
+
+        // MODO STREAMER (CHAT CON AMIGOS)
+        let streamActive = false; let streamInterval;
+        const chatUsers = ["Rosa_Surv", "Samuel_Player", "Madi_Stream", "Robloxian99", "Phonk_Beats"];
+        const chatTexts = ["¡Qué locura el estilo Windows XP!", "Angelo, dale a la etapa 2 del virus 🔥", "¡Prueba el SuperWium 2.0!", "Se ve épica la barra azul", "¡Récord de snake en directo ya!", "Rosa saluda al stream jajaja"];
+
+        function toggleStreamMode() {
+            streamActive = !streamActive;
+            const btn = document.getElementById('btnStreamMode');
+            const frame = document.getElementById('streamer-frame');
+            const chat = document.getElementById('streamer-chat-box');
+
+            if(streamActive) {
+                btn.textContent = "🎙️ MODO STREAMER: ACTIVO";
+                btn.style.background = "#ff00ff"; btn.style.borderColor = "#ff99ff";
+                frame.style.display = "block"; chat.style.display = "block";
+                streamInterval = setInterval(() => {
+                    const lines = document.getElementById('chat-lines');
+                    const u = chatUsers[Math.floor(Math.random() * chatUsers.length)];
+                    const t = chatTexts[Math.floor(Math.random() * chatTexts.length)];
+                    const d = document.createElement('div');
+                    d.innerHTML = `<span style="color: #3f8cf3; font-weight:bold;">[STREAM]</span> <b>${u}:</b> ${t}`;
+                    lines.appendChild(d);
+                    chat.scrollTop = chat.scrollHeight;
+                }, 1300);
+            } else {
+                btn.textContent = "🎙️ MODO STREAMER: APAGADO";
+                btn.style.background = "#3873d9"; btn.style.borderColor = "#1f4994";
+                frame.style.display = "none"; chat.style.display = "none";
+                clearInterval(streamInterval);
+            }
+        }
+
+        // JUEGO: SNAKE
+        const canvas = document.getElementById('snakeGameCanvas');
+        const ctx = canvas.getContext('2d');
+        const box = 16;
+        let snake, food, score, d, gameInterval;
+
+        function startSnakeGame() {
+            clearInterval(gameInterval); score = 0; d = null; snake = [{x: 10*box, y: 7*box}];
+            document.getElementById('scoreBoard').textContent = score; spawnFood();
+            gameInterval = setInterval(drawSnake, 130);
+        }
+        function spawnFood() { food = { x: Math.floor(Math.random()*19)*box, y: Math.floor(Math.random()*14)*box }; }
+        document.addEventListener("keydown", e => {
+            if(e.keyCode == 37 && d != "RIGHT") d = "LEFT"; if(e.keyCode == 38 && d != "DOWN") d = "UP";
+            if(e.keyCode == 39 && d != "LEFT") d = "RIGHT"; if(e.keyCode == 40 && d != "UP") d = "DOWN";
+        });
+
+        function drawSnake() {
+            ctx.fillStyle = "#111"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            for(let i=0; i<snake.length; i++) { ctx.fillStyle = i==0 ? "#60af47" : "#fff"; ctx.fillRect(snake[i].x, snake[i].y, box, box); }
+            ctx.fillStyle = "#ff3333"; ctx.fillRect(food.x, food.y, box, box);
+            let sx = snake[0].x, sy = snake[0].y;
+            if(d == "LEFT") sx -= box; if(d == "UP") sy -= box; if(d == "RIGHT") sx += box; if(d == "DOWN") sy += box;
+            if(sx == food.x && sy == food.y) { score++; document.getElementById('scoreBoard').textContent = score; spawnFood(); } else { snake.pop(); }
+            let head = {x: sx, y: sy};
+            if(sx<0 || sx>=canvas.width || sy<0 || sy>=canvas.height || snake.some(s=>s.x==head.x && s.y==head.y)) {
+                clearInterval(gameInterval); ctx.fillStyle = "orange"; ctx.font = "15pt Arial"; ctx.fillText("PANTALLA DERROTADO", 65, 120); return;
+            }
+            snake.unshift(head);
+        }
+
+        // CONTROL DE VIRUS LAB
+        function startVirusStage1() {
+            document.getElementById('virusLabWindow').classList.add('error-flashing');
+            document.getElementById('labBody').innerHTML = `<p style="color: red; font-weight: bold;">[ETAPA 1]: Registro modificado de forma inestable.</p><button onclick="startVirusStage2()" style="padding:4px; font-weight:bold; cursor:pointer;">Proceder a Etapa 2</button>`;
+            playXpSound(600, 250);
+        }
+        function startVirusStage2() {
+            closeWindow('virusLabWindow');
+            document.getElementById('desktop').style.backgroundColor = '#1a1a1a';
+            document.getElementById('desktop').style.backgroundImage = 'none';
+            document.getElementById('virusMessageBox').style.display = 'block';
+            playXpSound(300, 600);
+        }
+        function triggerBSOD() {
+            document.getElementById('virusMessageBox').style.display = 'none';
+            document.getElementById('bsod').style.display = 'block';
+            playXpSound(130, 900);
+        }
+        function playXpSound(freq, dur) {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator(); osc.type = 'square'; osc.frequency.value = freq;
+            osc.connect(audioCtx.destination); osc.start(); setTimeout(() => osc.stop(), dur);
+        }
+
+        // MOVIMIENTO DE VENTANAS
+        document.querySelectorAll('.window').forEach(win => {
+            const header = win.querySelector('.window-header');
+            header.addEventListener('mousedown', (e) => {
+                if(e.target.tagName === 'BUTTON') return;
+                let sX = e.clientX - win.getBoundingClientRect().left;
+                let sY = e.clientY - win.getBoundingClientRect().top;
+                win.style.zIndex = ++zIndex;
+                function move(ev) { win.style.left = ev.clientX - sX + 'px'; win.style.top = ev.clientY - sY + 'px'; }
+                document.addEventListener('mousemove', move);
+                document.onmouseup = function() { document.removeEventListener('mousemove', move); document.onmouseup = null; };
+            });
+        });
+
+        // HORA
+        setInterval(() => {
+            const d = new Date(); let h = d.getHours(), m = d.getMinutes();
+            document.getElementById('taskbar-time').textContent = `${h%12||12}:${m<10?'0'+m:m} ${h>=12?'PM':'AM'}`;
+        }, 1000);
+    </script>
+</body>
+</html>
