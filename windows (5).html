@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetroCore Windows 5.0 – Ultimate Edition</title>
+    <style>
+        /* ==========================================================================
+           1. CORE & RESET ESTILO WINDOWS XP
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+        body, html {
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+            font-family: 'Tahoma', 'Segoe UI', Geneva, Verdana, sans-serif;
+            font-size: 11px;
+        }
+
+        /* Temas Dinámicos del Panel de Control */
+        body.theme-blue {
+            --xp-blue: #245edb;
+            --xp-header: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #1b4ca3 100%);
+            --xp-taskbar: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #1b4ca3 92%, #163b7e 100%);
+            --xp-border: #245edb;
+        }
+        body.theme-silver {
+            --xp-blue: #8c8c9e;
+            --xp-header: linear-gradient(to bottom, #cfd0d8 0%, #ffffff 20%, #b4b7c7 40%, #8c8c9e 100%);
+            --xp-taskbar: linear-gradient(to bottom, #b4b7c7 0%, #ebecef 10%, #b4b7c7 20%, #7e8293 90%, #585a67 100%);
+            --xp-border: #8c8c9e;
+        }
+        body.theme-olive {
+            --xp-blue: #616e41;
+            --xp-header: linear-gradient(to bottom, #a2b473 0%, #cbd99d 10%, #a2b473 25%, #616e41 100%);
+            --xp-taskbar: linear-gradient(to bottom, #a2b473 0%, #cbd99d 10%, #a2b473 20%, #525e35 90%, #3d4626 100%);
+            --xp-border: #616e41;
+        }
+
+        /* Fondos Dinámicos */
+        body.bg-bliss {
+            background: #5a7edc url('https://wallpapercave.com/wp/wp1814092.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        body.bg-dark {
+            background: #111111;
+        }
+        body.bg-retro {
+            background: #008080;
+        }
+
+        /* Tooltips Globales */
+        [data-tooltip] {
+            position: relative;
+        }
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 130%; left: 50%;
+            transform: translateX(-50%);
+            background: #ffffe1;
+            color: #000;
+            border: 1px solid #000;
+            padding: 3px 6px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 999999;
+            display: none;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            border-radius: 2px;
+        }
+        [data-tooltip]:hover::after {
+            display: block;
+        }
+
+        /* ==========================================================================
+           2. PANTALLA DE ARRANQUE AVANZADA CON CONSOLA
+           ========================================================================== */
+        #boot-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #000000; z-index: 9999999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #ffffff; font-family: monospace; padding: 20px;
+        }
+        .boot-logo-area {
+            text-align: center; margin-bottom: 30px;
+        }
+        .boot-logo-area h1 {
+            font-size: 26pt; font-style: italic; font-weight: bold; margin: 0;
+            background: linear-gradient(to right, #ffffff, #3a7be0, #ff9900);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .boot-logo-area span {
+            font-size: 11pt; letter-spacing: 5px; color: #ff9900; font-weight: bold; display: block; margin-top: 5px;
+        }
+        .boot-progress-container {
+            width: 180px; height: 14px; border: 2px solid #777; padding: 1px; border-radius: 3px; background:#000; margin-bottom: 25px;
+        }
+        .boot-progress-bar {
+            width: 100%; height: 100%; display: flex; gap: 3px; overflow: hidden;
+        }
+        .boot-block {
+            width: 12px; height: 100%; background: linear-gradient(to bottom, #3a7be0, #7eb4fc, #3a7be0);
+            flex-shrink: 0; animation: loadingXP 1.8s infinite linear;
+        }
+        @keyframes loadingXP {
+            0% { transform: translateX(-180px); }
+            100% { transform: translateX(180px); }
+        }
+        #boot-console {
+            width: 450px; height: 110px; background: #050505; border: 1px solid #333;
+            padding: 10px; font-size: 9pt; color: #00ff00; overflow-y: hidden; text-align: left;
+            box-shadow: inset 0 0 10px rgba(0,255,0,0.2);
+        }
+
+        /* ==========================================================================
+           3. INTERFAZ MODO STREAMER 3.0 (HIPERACTIVO)
+           ========================================================================== */
+        #streamer-frame {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            border: 6px dashed #ff00ff; pointer-events: none; z-index: 999995;
+            display: none; animation: streamFramePulse 1.2s infinite alternate;
+        }
+        @keyframes streamFramePulse {
+            0% { border-color: #ff00ff; box-shadow: inset 0 0 12px rgba(255,0,255,0.6); }
+            100% { border-color: #00ffff; box-shadow: inset 0 0 12px rgba(0,255,255,0.6); }
+        }
+        #streamer-banner {
+            position: fixed; top: 0; left: 120px; right: 260px; height: 26px;
+            background: linear-gradient(to right, #ff0055, #aa0044); color: white;
+            z-index: 999996; display: none; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 11px; box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;
+        }
+        #streamer-chat-box {
+            position: fixed; right: 15px; top: 40px; width: 240px; height: calc(100vh - 85px);
+            background: rgba(10, 16, 36, 0.9); border: 2px solid var(--xp-border); border-radius: 6px;
+            color: #ffffff; padding: 10px; overflow-y: auto; z-index: 999990; display: none;
+            box-shadow: -4px 4px 15px rgba(0,0,0,0.5);
+        }
+
+        /* ==========================================================================
+           4. ESCRITORIO E ICONOS
+           ========================================================================== */
+        #desktop {
+            width: 100%; height: calc(100vh - 30px); padding: 15px;
+            display: flex; flex-direction: column; flex-wrap: wrap;
+            align-content: flex-start; gap: 18px; position: relative;
+        }
+        .desktop-icon {
+            width: 90px; text-align: center; color: white; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center;
+            text-shadow: 2px 2px 3px rgba(0,0,0,0.9); font-weight: 500;
+            padding: 5px; border: 1px solid transparent; border-radius: 3px;
+        }
+        .desktop-icon:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .desktop-icon img {
+            width: 36px; height: 36px; margin-bottom: 5px;
+        }
+
+        /* ==========================================================================
+           5. SISTEMA AVANZADO DE VENTANAS WINDOWS XP
+           ========================================================================== */
+        .window {
+            width: 500px; height: 360px; background-color: #f1f0e8; border: 3px solid var(--xp-border);
+            border-top-left-radius: 7px; border-top-right-radius: 7px;
+            position: absolute; z-index: 100; display: none;
+            box-shadow: 4px 6px 22px rgba(0,0,0,0.4);
+            transform: scale(0.95); opacity: 0;
+            transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+        }
+        .window.window-open {
+            transform: scale(1); opacity: 1;
+        }
+        .window-header {
+            background: var(--xp-header);
+            color: white; font-weight: bold; padding: 5px 8px; font-size: 11px;
+            display: flex; justify-content: space-between; align-items: center; cursor: move;
+            height: 26px;
+        }
+        .window-title-area {
+            display: flex; align-items: center; gap: 6px;
+        }
+        .window-title-icon {
+            width: 14px; height: 14px; background: #fff; border-radius: 2px;
+            display: inline-block; font-size: 8px; text-align: center; line-height: 14px; color: #333;
+        }
+        .window-controls { display: flex; gap: 2px; }
+        .window-controls button {
+            color: white; font-weight: bold; font-size: 9px; border-radius: 2px;
+            width: 22px; height: 18px; cursor: pointer; border: 1px solid rgba(0,0,0,0.3); padding: 0;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        .win-btn-min { background: linear-gradient(to bottom, #3c7be6, #1640a3); }
+        .win-btn-max { background: linear-gradient(to bottom, #3c7be6, #1640a3); }
+        .win-btn-close { background: linear-gradient(to bottom, #e76446 0%, #b83314 100%); }
+        .win-btn-close:hover { background: #ff3300; }
+
+        .window-body {
+            padding: 10px; font-size: 11px; color: black; background-color: #fff;
+            height: calc(100% - 26px); overflow: auto; position: relative;
+        }
+
+        /* Maximizado */
+        .window.maximized {
+            width: 100% !important; height: calc(100vh - 30px) !important;
+            top: 0 !important; left: 0 !important;
+        }
+
+        /* ==========================================================================
+           6. COMPONENTES Y VISTAS ESPECÍFICAS DE LAS VENTANAS
+           ========================================================================== */
+        
+        /* Explorador de Archivos */
+        .explorer-layout { display: flex; height: 100%; }
+        .explorer-sidebar { width: 130px; background: #7b9ede; border-right: 1px solid #4b6da3; padding: 8px; color: white; }
+        .explorer-main { flex-grow: 1; padding: 10px; display: flex; flex-wrap: wrap; gap: 15px; background: #fff; align-content: flex-start; }
+        .sidebar-folder { padding: 6px; cursor: pointer; border-radius: 3px; font-weight: bold; margin-bottom: 5px; }
+        .sidebar-folder:hover { background-color: rgba(255,255,255,0.2); }
+        .explorer-item { width: 70px; text-align: center; cursor: pointer; font-size: 10px; }
+        .explorer-item img { width: 32px; height: 32px; display: block; margin: 0 auto 4px; }
+
+        /* Navegador SuperWium 4.0 */
+        .nav-bar { display: flex; gap: 4px; margin-bottom: 8px; background: #f0f0f0; padding: 5px; border-bottom: 1px solid #ccc; align-items: center; }
+        .nav-input { flex-grow: 1; border: 1px solid #7f9db9; padding: 3px 6px; font-size: 11px; }
+        .nav-btn { background: #fff; border: 1px solid #a0a0a0; border-radius: 3px; cursor: pointer; padding: 3px 10px; font-weight: bold; }
+        .web-content { width: 100%; height: calc(100% - 40px); background: #fff; border: 1px solid #999; padding: 12px; overflow-y: auto; }
+
+        /* Snake Arcade Ultra */
+        #snakeGameCanvas { border: 2px solid var(--xp-border); background-color: #0d0d0d; display: block; margin: 0 auto; }
+        .snake-dashboard { display: flex; justify-content: space-between; font-weight: bold; background: #f0f0f0; padding: 6px; border-radius: 4px; margin-top: 6px; }
+
+        /* Panel de Control */
+        .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .ctrl-card { border: 1px solid #ccc; padding: 10px; border-radius: 4px; background: #fdfdfd; }
+        .ctrl-card h5 { margin: 0 0 6px 0; font-size: 11px; color: #245edb; }
+
+        /* RetroMusic Player */
+        .player-box { background: #222; color: #00ff00; padding: 12px; border-radius: 6px; font-family: monospace; text-align: center; }
+        .player-controls { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+        .player-btn { background: #444; border: 1px solid #666; color: white; padding: 4px 10px; cursor: pointer; font-size: 10px; font-family: monospace; }
+        .player-btn:hover { background: #666; }
+        .music-progress { width: 100%; background: #444; height: 6px; margin-top: 10px; border-radius: 3px; overflow: hidden; }
+        .music-bar { width: 0%; height: 100%; background: #00ff00; transition: width 0.5s linear; }
+
+        /* Bloc de Notas */
+        .notepad-textarea { width: 100%; height: calc(100% - 30px); border: 1px solid #ccc; resize: none; font-family: Courier, monospace; padding: 5px; font-size: 12px; }
+
+        /* CMD RetroCore */
+        .cmd-box { background-color: #000; color: #fff; font-family: monospace; height: 100%; padding: 5px; overflow-y: auto; }
+        .cmd-output { white-space: pre-wrap; margin-bottom: 5px; line-height: 1.3; }
+        .cmd-input-line { display: flex; }
+        .cmd-prompt { color: #00ff00; font-weight: bold; margin-right: 5px; }
+        .cmd-field { background: transparent; border: none; color: white; font-family: monospace; outline: none; flex-grow: 1; font-size: 11px; }
+
+        /* ==========================================================================
+           7. MENÚ INICIO XP ULTRA (CON SUBMENÚS)
+           ========================================================================== */
+        #start-menu {
+            position: fixed; bottom: 30px; left: 0; width: 280px;
+            background: #fff; border: 2px solid var(--xp-border); border-top-right-radius: 5px;
+            box-shadow: 3px -3px 20px rgba(0,0,0,0.4); display: none; z-index: 99999;
+        }
+        .start-header {
+            background: var(--xp-header); color: white; padding: 10px; font-weight: bold;
+            display: flex; align-items: center; gap: 8px; font-size: 12px;
+        }
+        .start-header img { width: 24px; height: 24px; border-radius: 50%; border: 1px solid white; }
+        .start-menu-list { padding: 4px 0; background: #fff; position: relative; }
+        .start-menu-item {
+            padding: 8px 15px; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+            color: #333; position: relative;
+        }
+        .start-menu-item:hover { background-color: #316ac5; color: white; }
+        
+        /* Submenús */
+        .start-submenu {
+            position: absolute; left: 100%; top: 0; width: 180px; background: white;
+            border: 2px solid var(--xp-border); display: none; box-shadow: 3px 3px 10px rgba(0,0,0,0.2);
+            z-index: 100000; padding: 4px 0;
+        }
+        .start-menu-item:hover > .start-submenu { display: block; }
+        .submenu-item { padding: 6px 12px; color: #333; cursor: pointer; }
+        .submenu-item:hover { background: #316ac5; color: white; }
+
+        .start-footer { background: #d3e5fa; padding: 6px; text-align: right; border-top: 1px solid #a2c1e8; }
+        .shutdown-btn { background: linear-gradient(to bottom, #e76446, #b83314); color: white; border: 1px solid #7a1b07; padding: 4px 10px; font-weight: bold; cursor: pointer; border-radius: 3px; }
+
+        /* Diálogo de Apagado Falso */
+        #shutdown-dialog {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 320px; background: #5a7edc; border: 3px solid #0011a0; border-radius: 6px;
+            padding: 15px; color: white; text-align: center; z-index: 999998; display: none;
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.6);
+        }
+        .shutdown-options { display: flex; justify-content: space-around; margin-top: 15px; }
+        .shutdown-opt-btn { background: #f0f0f0; border: 2px solid #333; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer; color: black; }
+        .shutdown-opt-btn:hover { background: #ddd; }
+
+        /* ==========================================================================
+           8. BARRA DE TAREAS XP COMPLETA
+           ========================================================================== */
+        #taskbar {
+            background: var(--xp-taskbar);
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 30px;
+            display: flex; align-items: center; z-index: 99999;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
+        }
+        #start-button {
+            height: 100%; width: 100px;
+            background: linear-gradient(to bottom, #60af47 0%, #398a23 100%);
+            border-top-right-radius: 7px; border-bottom-right-radius: 7px;
+            color: white; font-weight: bold; font-style: italic; font-size: 13pt;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; text-shadow: 1px 1px 2px #225511; border: none;
+        }
+        #start-button:active { background: linear-gradient(to bottom, #398a23 0%, #296419 100%); }
+        
+        #open-apps-container { display: flex; gap: 4px; margin-left: 10px; align-items: center; }
+        .taskbar-app-btn {
+            background: linear-gradient(to bottom, #3c7be6, #1f4994); color: white;
+            border: 1px solid #112a59; border-radius: 3px; padding: 2px 8px; height: 24px;
+            cursor: pointer; font-size: 10px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .taskbar-app-btn.active-app { background: #1e4287; font-weight: bold; border-color: #fff; }
+
+        #taskbar-right {
+            margin-left: auto; background: linear-gradient(to bottom, #0f69e4, #0046b7);
+            color: white; height: 100%; display: flex; align-items: center; gap: 8px;
+            padding: 0 12px; font-size: 10px; border-left: 1px solid #0c3374;
+        }
+        .stream-toggle-tb { background: #ff00ff; border: none; color: white; padding: 2px 6px; font-weight: bold; cursor: pointer; border-radius: 2px; font-size: 9px; }
+
+        /* ==========================================================================
+           9. LAB VIRUS XTREME EFFECTS & BSOD
+           ========================================================================== */
+        @keyframes windowVibrate {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            50% { transform: translate(-2px, -1px) rotate(1deg); }
+            100% { transform: translate(2px, -1px) rotate(-1deg); }
+        }
+        .vibrate-active { animation: windowVibrate 0.1s infinite !important; }
+        
+        #virus-ransom-box {
+            position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            width: 360px; background: #fff; border: 4px solid #cc0000; z-index: 999997;
+            box-shadow: 0 0 30px rgba(255,0,0,0.8); display: none; padding: 15px; text-align: center;
+        }
+        #bsod {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #0000aa; color: white; font-family: 'Courier New', monospace;
+            padding: 50px; font-size: 12pt; z-index: 9999999; display: none; line-height: 1.5;
+        }
+    </style>
+</head>
+<body class="theme-blue bg-bliss">
+
+    <div id="boot-screen">
+        <div class="boot-logo-area">
+            <h1>RetroCore Windows 5.0</h1>
+            <span>ULTIMATE EDITION</span>
+        </div>
+        <div class="boot-progress-container">
+            <div class="boot-progress-bar">
+                <div class="boot-block"></div>
+                <div class="boot-block"></div>
+                <div class="boot-block"></div>
+            </div>
+        </div>
+        <div id="boot-console"></div>
+    </div>
+
+    <div id="streamer-frame"></div>
+    <div id="streamer-banner">🔴 LIVE MODO STREAMER ACTIVADO | ESPECTADORES: <span id="v-count">314</span> | CANAL: c00lkidd_v2yt</div>
+    <div id="streamer-chat-box">
+        <div style="color: #ff00ff; font-weight: bold; border-bottom: 1px solid #ff00ff; padding-bottom: 4px; margin-bottom: 8px; font-size:11px;">💬 CHAT EN VIVO ULTRA</div>
+        <div id="chat-stream-lines"></div>
+    </div>
+
+    <div id="desktop">
+        <div class="desktop-icon" onclick="openWindow('win-superwium')" data-tooltip="Navegador Pro Web SuperWium 4.0">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAPFBMVEX///8AAAD/AJD/mZn/zMz/27b/5ub/8vL////////////09PT29vb4+Pj6+vr8/Pz9/f3///999999AAAAAnRSTlMAgJsrUAAAADBJREFUeNpiYIQCBgYwYIQLMDIwM8AEDAzMCHwGZgR+AzMCv4EZgd/AjMBvYIQCBgYAFZgAn9vcl9IAAAAASUVORK5CYII=">
+            <span>SuperWium 4.0</span>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('win-snake')" data-tooltip="Juego de la Serpiente Edición Ultra">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAbFBMVEX///8AAAD/AJD/mZn/zMz/27b/5ub/8vL////////////09PT29vb4+Pj6+vr8/Pz9/f3///999999AAAAAnRSTlMAgJsrUAAAADBJREFUeNpiYIQCBgYwYIQLMDIwM8AEDAzMCHwGZgR+AzMCv4EZgd/AjMBvYIQCBgYAFZgAn9vcl9IAAAAASUVORK5CYII=">
+            <span>Snake Ultra</span>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('win-virus')" data-tooltip="Laboratorio Técnico de Demostraciones de Malware">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAWlBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACEq+R/AAAAA3RSTlMAVv+P8v4A8wAAACBJREFUeNpiYEADKAZ5BkgA+kGeAREAnEGeAREAORgkAAAf3ACX0f80AAAAAElFTkSuQmCC">
+            <span>Virus Lab Xtreme</span>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('win-explorer')" data-tooltip="Explorador de Archivos de RetroCore">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAASFBMVEX///8AAAD8/PzMzMz///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAt9pYVAAAAAnRSTlMAgJsrUAAAADNJREFUeNpiYIQCBgYwYIQLMDIwM8AEDAzMCHwGZgR+AzMCv4EZgd/AjMBvYIQCBgYAFZgAn9vcl9IAAAAASUVORK5CYII=">
+            <span>Explorador</span>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('win-control')" data-tooltip="Configuración del Sistema, Temas y Fondos">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAMFBMVEX///8AAAD8/PyZmZnMzMzcnJz///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACm8v7gAAAAAnRSTlMAgJsrUAAAADNJREFUeNpiYIQCBgYwYIQLMDIwM8AEDAzMCHwGZgR+AzMCv4EZgd/AjMBvYIQCBgYAFZgAn9vcl9IAAAAASUVORK5CYII=">
+            <span>Panel de Control</span>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('win-music')" data-tooltip="Reproductor de Audio RetroMusic">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAUlBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACw09GuAAAAAnRSTlMAgJsrUAAAADNJREFUeNpiYIQCBgYwYIQLMDIwM8AEDAzMCHwGZgR+AzMCv4EZgd/AjMBvYIQCBgYAFZgAn9vcl9IAAAAASUVORK5CYII=">
+            <span>RetroMusic</span>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('win-notepad')" data-tooltip="Editor de Texto Plano Simple">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAPFBMVEX///8AAAD/AJD/mZn/zMz/27b/5ub/8vL////////////09PT29vb4+Pj6+vr8/Pz9/f3///999999AAAAAnRSTlMAgJsrUAAAADBJREFUeNpiYIQCBgYwYIQLMDIwM8AEDAzMCHwGZgR+AzMCv4EZgd/AjMBvYIQCBgYAFZgAn9vcl9IAAAAASUVORK5CYII=">
+            <span>Bloc de Notas</span>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('win-cmd')" data-tooltip="Consola de Comandos de RetroCore">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAbFBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACEq+R/AAAAA3RSTlMAVv+P8v4A8wAAACpJREFUeNpjYMAGhgsYfWAG5wBOMDkGZgXwYMAHYAZ5BkgAnkByAM5gkAAAmKcBv93pB58AAAAASUVORK5CYII=">
+            <span>CMD RetroCore</span>
+        </div>
+        <div class="desktop-icon" onclick="alert('La Papelera de Reciclaje está limpia.')" data-tooltip="Contenedor de Archivos Eliminados">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAASFBMVEX///8AAAD8/PzMzMz///8AAAAAAAAAAAAAAAA================================================================AAAAt9pYVAAAAAnRSTlMAgJsrUAAAADNJREFUeNpiYIQCBgYwYIQLMDIwM8AEDAzMCHwGZgR+AzMCv4EZgd/AjMBvYIQCBgYAFZgAn9vcl9IAAAAASUVORK5CYII=">
+            <span>Papelera</span>
+        </div>
+    </div>
+
+    <div class="window" id="win-explorer" style="left: 60px; top: 40px;">
+        <div class="window-header">
+            <div class="window-title-area"><span class="window-title-icon">📂</span> <span>Explorador de Archivos</span></div>
+            <div class="window-controls">
+                <button class="win-btn-min" onclick="minimizeWindow('win-explorer')">_</button>
+                <button class="win-btn-max" onclick="maximizeWindow('win-explorer')">[]</button>
+                <button class="win-btn-close" onclick="closeWindow('win-explorer')">X</button>
+            </div>
+        </div>
+        <div class="window-body" style="padding:0;">
+            <div class="explorer-layout">
+                <div class="explorer-sidebar">
+                    <div class="sidebar-folder" onclick="loadFolder('docs')">📁 Mis Documentos</div>
+                    <div class="sidebar-folder" onclick="loadFolder('downloads')">📁 Descargas</div>
+                    <div class="sidebar-folder" onclick="loadFolder('games')">📁 Juegos</div>
+                    <div class="sidebar-folder" onclick="loadFolder('logs')">📁 Logs de Stream</div>
+                </div>
+                <div class="explorer-main" id="explorer-content">
+                    <p style="color: #666; width: 100%; text-align: center; margin-top: 40px;">Selecciona una carpeta en el menú izquierdo para visualizar su contenido.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window" id="win-superwium" style="left: 100px; top: 60px;">
+        <div class="window-header">
+            <div class="window-title-area"><span class="window-title-icon">🌐</span> <span>SuperWium 4.0 Pro Navigator</span></div>
+            <div class="window-controls">
+                <button class="win-btn-min" onclick="minimizeWindow('win-superwium')">_</button>
+                <button class="win-btn-max" onclick="maximizeWindow('win-superwium')">[]</button>
+                <button class="win-btn-close" onclick="closeWindow('win-superwium')">X</button>
+            </div>
+        </div>
+        <div class="window-body" style="padding:0;">
+            <div class="nav-bar">
+                <button class="nav-btn" onclick="loadWeb('home')">🏠 Inicio</button>
+                <input type="text" class="nav-input" id="browser-url-bar" value="https://superwium.net/v4" readonly>
+                <button class="nav-btn" onclick="alert('Cargando página ficticia...')">Ir</button>
+            </div>
+            <div class="web-content" id="browser-viewport">
+                <h3>Bienvenido a SuperWium 4.0 Pro Engine</h3>
+                <p>Navegador integrado optimizado para creadores de contenido retro. Sitios disponibles:</p>
+                <ul>
+                    <li><a href="#" onclick="loadWeb('roblox')">Roblox Studio Portal</a></li>
+                    <li><a href="#" onclick="loadWeb('youtube')">YouTube Analytics Dashboard</a></li>
+                    <li><a href="#" onclick="loadWeb('news')">RetroCore News Portal</a></li>
+                    <li><a href="#" onclick="loadWeb('changelog')">Changelog Oficial v5.0</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="window" id="win-snake" style="left: 140px; top: 90px; width: 360px; height: 350px;">
+        <div class="window-header">
+            <div class="window-title-area"><span class="window-title-icon">🎮</span> <span>Snake Arcade Ultra</span></div>
+            <div class="window-controls">
+                <button class="win-btn-close" onclick="closeWindow('win-snake')">X</button>
+            </div>
+        </div>
+        <div class="window-body">
+            <canvas id="snakeGameCanvas" width="320" height="220"></canvas>
+            <div class="snake-dashboard">
+                <div>Pts: <span id="s-score">0</span></div>
+                <div>Máx: <span id="s-high">0</span></div>
+                <div>Modo: <span id="s-mode-lbl">Normal</span></div>
+            </div>
+            <div style="display:flex; gap: 4px; justify-content:center; margin-top:6px;">
+                <button class="nav-btn" onclick="setSnakeMode('normal')">Normal</button>
+                <button class="nav-btn" onclick="setSnakeMode('turbo')">Turbo</button>
+                <button class="nav-btn" onclick="setSnakeMode('infinite')">Infinito</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="window" id="win-virus" style="left: 180px; top: 120px; width: 380px; height: 220px;">
+        <div class="window-header">
+            <div class="window-title-area"><span class="window-title-icon">🧪</span> <span>Virus Lab Xtreme – Sandbox Seguro</span></div>
+            <div class="window-controls"><button class="win-btn-close" onclick="closeWindow('win-virus')">X</button></div>
+        </div>
+        <div class="window-body" id="virus-lab-body" style="text-align: center;">
+            <h4>Simulador Avanzado de Malware de Laboratorio</h4>
+            <p>Ejecuta una demo visual inofensiva de 4 etapas para sorprender en tus streams de YouTube.</p>
+            <button onclick="runVirusStage1()" style="background: linear-gradient(to bottom, #ff4d4d, #cc0000); color:white; font-weight:bold; padding:8px 16px; border:1px solid #990000; cursor:pointer; border-radius:3px;">Lanzar Ataque de Demostración</button>
+        </div>
+    </div>
+
+    <div class="window" id="win-control" style="left: 220px; top: 140px;">
+        <div class="window-header">
+            <div class="window-title-area"><span class="window-title-icon">⚙️</span> <span>Panel de Control de RetroCore</span></div>
+            <div class="window-controls"><button class="win-btn-close" onclick="closeWindow('win-control')">X</button></div>
+        </div>
+        <div class="window-body">
+            <div class="ctrl-grid">
+                <div class="ctrl-card">
+                    <h5>Temas de Ventana</h5>
+                    <select onchange="changeTheme(this.value)" style="width:100%;">
+                        <option value="theme-blue">Luna Azul Tradicional</option>
+                        <option value="theme-silver">Plata Metalizado</option>
+                        <option value="theme-olive">Verde Oliva Bosque</option>
+                    </select>
+                </div>
+                <div class="ctrl-card">
+                    <h5>Fondos de Escritorio</h5>
+                    <select onchange="changeBg(this.value)" style="width:100%;">
+                        <option value="bg-bliss">Paisaje Bliss XP original</option>
+                        <option value="bg-retro">Clásico Verde Sólido (98)</option>
+                        <option value="bg-dark">Modo Gamer Oscuro</option>
+                    </select>
+                </div>
+                <div class="ctrl-card">
+                    <h5>Audio del Sistema</h5>
+                    <button class="nav-btn" onclick="alert('Efectos de sonido del núcleo: ACTIVADOS')">Activar Sonidos</button>
+                </div>
+                <div class="ctrl-card">
+                    <h5>Información Interna</h5>
+                    <p style="margin:2px 0;"><b>SO:</b> Windows 5.0 Ultimate</p>
+                    <p style="margin:2px 0;"><b>Dev:</b> Angelo</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window" id="win-music" style="left: 260px; top: 170px; width: 340px; height: 180px;">
+        <div class="window-header">
+            <div class="window-title-area"><span class="window-title-icon">🎵</span> <span>RetroMusic Player v5.0</span></div>
+            <div class="window-controls"><button class="win-btn-close" onclick="closeWindow('win-music')">X</button></div>
+        </div>
+        <div class="window-body">
+            <div class="player-box">
+                <div id="track-title" style="font-weight:bold; margin-bottom:4px;">[Ninguna pista cargada]</div>
+                <div id="track-status">Estado: Detenido</div>
+                <div class="music-progress"><div class="music-bar" id="m-bar"></div></div>
+                <div class="player-controls">
+                    <button class="player-btn" onclick="controlMusic('prev')">⏮ Prev</button>
+                    <button class="player-btn" onclick="controlMusic('play')">▶ Play</button>
+                    <button class="player-btn" onclick="controlMusic('pause')">⏸ Pause</button>
+                    <button class="player-btn" onclick="controlMusic('next')">⏭ Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window" id="win-notepad" style="left: 300px; top: 80px;">
+        <div class="window-header">
+            <div class="window-title-area"><span class="window-title-icon">📝</span> <span>Bloc de Notas Retro</span></div>
+            <div class="window-controls"><button class="win-btn-close" onclick="closeWindow('win-notepad')">X</button></div>
+        </div>
+        <div class="window-body" style="padding:4px;">
+            <div style="background:#eee; padding:2px; margin-bottom:4px; display:flex; gap:5px;">
+                <button onclick="alert('Nota guardada ficticiamente en Mis Documentos.')" style="font-size:10px; cursor:pointer;">Guardar</button>
+                <button onclick="document.getElementById('note-text').value=''" style="font-size:10px; cursor:pointer;">Limpiar</button>
+                <button onclick="document.getElementById('note-text').value='Ideas para el Directo:\\n1. Probar la etapa final del virus\\n2. Subir el record de la serpiente\\n3. Saludar a los moderadores'" style="font-size:10px; cursor:pointer;">Cargar Ejemplo</button>
+            </div>
+            <textarea class="notepad-textarea" id="note-text" placeholder="Escribe tus notas aquí..."></textarea>
+        </div>
+    </div>
+
+    <div class="window" id="win-cmd" style="left: 80px; top: 190px; width: 440px; height: 300px;">
+        <div class="window-header">
+            <div class="window-title-area"><span class="window-title-icon">💻</span> <span>CMD RetroCore Terminal</span></div>
+            <div class="window-controls"><button class="win-btn-close" onclick="closeWindow('win-cmd')">X</button></div>
+        </div>
+        <div class="window-body" style="padding:0; background:#000;">
+            <div class="cmd-box" onclick="document.getElementById('cmd-input-field').focus()">
+                <div id="cmd-history" class="cmd-output">RetroCore Windows 5.0 [Versión Ultimate 2026]
+(C) Corporación RetroCore OS. Escribe 'help' para ver comandos.</div>
+                <div class="cmd-input-line">
+                    <span class="cmd-prompt">C:\\Angelo_OS></span>
+                    <input type="text" id="cmd-input-field" class="cmd-field" onkeydown="handleCmd(event)">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="virus-ransom-box">
+        <h3 style="color:red; margin-top:0;">⚠️ SISTEMA SECUESTRADO (SIMULACIÓN) ⚠️</h3>
+        <p>Los controladores gráficos visuales del escritorio han sido comprometidos temporalmente por esta demostración.</p>
+        <button onclick="triggerBsodStage4()" style="padding:6px 20px; font-weight:bold; cursor:pointer; background:black; color:white; border:none;">Aceptar Código Fatal</button>
+    </div>
+
+    <div id="bsod">
+        <span style="background:white; color:#0000aa; font-weight:bold; padding:2px 8px; display:inline-block; margin-bottom:15px;">RetroCore Core System Error</span>
+        <p>Un error ficticio fatal de simulación ha detenido el núcleo operativo para diversión del stream.</p>
+        <p><b>TECHNICAL_ERROR_ID: 0x0000XP_ULTIMATE_COMPLETE_STAGE_4</b></p>
+        <p>Si estás viendo esto en YouTube, la simulación de malware de 4 fases funcionó perfectamente en pantalla.</p>
+        <br>
+        <p>Presiona la tecla <b>F5</b> de tu teclado físico para recargar los scripts y reiniciar RetroCore Windows 5.0...</p>
+    </div>
+
+    <div id="start-menu">
+        <div class="start-header">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAMFBMVEUAAAD///+ZmZnMzMzcnJz8/PwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB69u7SAAAAAXRSTlMAQObYZgAAADlJREFUeNpiYGRgYIQLMDIwM8AEDAzMCHwGZgR+AzMCv4EZgd/AjMBvYIQCBgYwYIQLoMrhU8tIAAAAs0BFw6pdEwAAAABJRU5ErkJggg==">
+            <span>Angelo_Streamer</span>
+        </div>
+        <div class="start-menu-list">
+            <div class="start-menu-item">
+                <span>📁 Programas</span> <span>▶</span>
+                <div class="start-submenu">
+                    <div class="submenu-item" onclick="openWindow('win-superwium'); toggleStartMenu();">🌐 SuperWium 4.0</div>
+                    <div class="submenu-item" onclick="openWindow('win-notepad'); toggleStartMenu();">📝 Bloc de Notas</div>
+                    <div class="submenu-item" onclick="openWindow('win-cmd'); toggleStartMenu();">💻 Terminal CMD</div>
+                </div>
+            </div>
+            <div class="start-menu-item">
+                <span>🎮 Juegos</span> <span>▶</span>
+                <div class="start-submenu">
+                    <div class="submenu-item" onclick="openWindow('win-snake'); toggleStartMenu();">🐍 Snake Ultra Pro</div>
+                </div>
+            </div>
+            <div class="start-menu-item">
+                <span>🛠️ Herramientas</span> <span>▶</span>
+                <div class="start-submenu">
+                    <div class="submenu-item" onclick="openWindow('win-virus'); toggleStartMenu();">🧪 Virus Lab Xtreme</div>
+                    <div class="submenu-item" onclick="openWindow('win-explorer'); toggleStartMenu();">📂 Explorador PC</div>
+                </div>
+            </div>
+            <div class="start-menu-item">
+                <span>⚙️ Configuración</span> <span>▶</span>
+                <div class="start-submenu">
+                    <div class="submenu-item" onclick="openWindow('win-control'); toggleStartMenu();">⚙️ Panel de Control</div>
+                </div>
+            </div>
+            <div class="start-menu-item" onclick="openWindow('win-music'); toggleStartMenu();">🎵 RetroMusic Player</div>
+        </div>
+        <div class="start-footer">
+            <button class="shutdown-btn" onclick="toggleShutdownDialog(true)">Apagar Sistema</button>
+        </div>
+    </div>
+
+    <div id="shutdown-dialog">
+        <h4>¿Qué desea que haga RetroCore OS?</h4>
+        <div class="shutdown-options">
+            <button class="shutdown-opt-btn" onclick="alert('Apagando... Simulación limpia finalizada.'); location.reload();">Apagar</button>
+            <button class="shutdown-opt-btn" onclick="alert('Reiniciando módulos...'); location.reload();">Reiniciar</button>
+            <button class="shutdown-opt-btn" onclick="toggleShutdownDialog(false)" style="background:#ff9999;">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="taskbar">
+        <button id="start-button" onclick="toggleStartMenu()" data-tooltip="Haz clic aquí para abrir aplicaciones">inicio</button>
+        
+        <div id="open-apps-container"></div>
+
+        <div id="taskbar-right">
+            <button class="stream-toggle-tb" id="s-btn-mode" onclick="toggleStreamMode3()" data-tooltip="Activar chat y contador interactivo en vivo">MODO STREAMER: OFF</button>
+            <span id="digital-clock" data-tooltip="Hora del servidor local">00:00:00 PM</span>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. LÓGICA Y SECUENCIA DE ARRANQUE AVANZADO ---
+        const bootLines = [
+            "Iniciando arquitectura de simulación RetroCore v5.0...",
+            "Cargando librerías gráficas estilo Windows XP...",
+            "Iniciando motor SuperWium 4.0 Engine Pro... OK",
+            "Mapeando registros para Snake Arcade Ultra...",
+            "Verificando integridad del Sandbox de Virus Lab Xtreme...",
+            "Conectando canales virtuales con YouTube Creator... Conectado",
+            "Listo. Cargando escritorio del Administrador..."
+        ];
+        let currentBootLine = 0;
+        const consoleEl = document.getElementById("boot-console");
+
+        function runBootConsole() {
+            if (currentBootLine < bootLines.length) {
+                consoleEl.innerHTML += "<div>> " + bootLines[currentBootLine] + "</div>";
+                currentBootLine++;
+                setTimeout(runBootConsole, 450);
+            } else {
+                setTimeout(() => {
+                    document.getElementById("boot-screen").style.display = "none";
+                    playOscillatorSound(523.25, 200);
+                }, 600);
+            }
+        }
+        window.addEventListener("load", runBootConsole);
+
+        // --- 2. CONTROL GLOBAL DE MENÚS Y DIÁLOGOS ---
+        let startOpen = false;
+        function toggleStartMenu() {
+            startOpen = !startOpen;
+            document.getElementById("start-menu").style.display = startOpen ? "block" : "none";
+        }
+        function toggleShutdownDialog(show) {
+            if(startOpen) toggleStartMenu();
+            document.getElementById("shutdown-dialog").style.display = show ? "block" : "none";
+        }
+
+        // --- 3. SISTEMA AVANZADO DE MANEJO DE VENTANAS (Z-INDEX DINÁMICO) ---
+        let topZ = 100;
+        const openApps = {};
+
+        function openWindow(id) {
+            const win = document.getElementById(id);
+            win.style.display = "block";
+            setTimeout(() => win.classList.add("window-open"), 10);
+            win.style.zIndex = ++topZ;
+            openApps[id] = true;
+            renderTaskbarApps();
+        }
+        function closeWindow(id) {
+            const win = document.getElementById(id);
+            win.classList.remove("window-open");
+            setTimeout(() => win.style.display = "none", 150);
+            delete openApps[id];
+            renderTaskbarApps();
+        }
+        function minimizeWindow(id) {
+            document.getElementById(id).style.display = "none";
+        }
+        function maximizeWindow(id) {
+            document.getElementById(id).classList.toggle("maximized");
+        }
+
+        function renderTaskbarApps() {
+            const container = document.getElementById("open-apps-container");
+            container.innerHTML = "";
+            for (let id in openApps) {
+                const btn = document.createElement("button");
+                btn.className = "taskbar-app-btn";
+                let name = id.replace("win-", "").toUpperCase();
+                btn.textContent = name;
+                btn.onclick = () => {
+                    const win = document.getElementById(id);
+                    if(win.style.display === "none") {
+                        win.style.display = "block";
+                        win.style.zIndex = ++topZ;
+                    } else {
+                        win.style.zIndex = ++topZ;
+                    }
+                };
+                container.appendChild(btn);
+            }
+        }
+
+        // Arrastrar Ventanas
+        document.querySelectorAll('.window').forEach(win => {
+            const header = win.querySelector('.window-header');
+            header.addEventListener('mousedown', (e) => {
+                if(e.target.tagName === 'BUTTON') return;
+                let sX = e.clientX - win.getBoundingClientRect().left;
+                let sY = e.clientY - win.getBoundingClientRect().top;
+                win.style.zIndex = ++topZ;
+                
+                function move(ev) {
+                    let nx = ev.clientX - sX;
+                    let ny = ev.clientY - sY;
+                    if(ny < 0) ny = 0;
+                    if(nx < 0) nx = 0;
+                    win.style.left = nx + 'px'; win.style.top = ny + 'px';
+                }
+                document.addEventListener('mousemove', move);
+                document.onmouseup = function() {
+                    document.removeEventListener('mousemove', move);
+                    document.onmouseup = null;
+                };
+            });
+        });
+
+        // --- 4. CONFIGURACIÓN DINÁMICA (PANEL DE CONTROL) ---
+        function changeTheme(theme) {
+            document.body.className = document.body.className.replace(/theme-\w+/g, theme);
+        }
+        function changeBg(bg) {
+            document.body.className = document.body.className.replace(/bg-\w+/g, bg);
+        }
+
+        // --- 5. EXPLORADOR DE RETROCORE ---
+        const folderData = {
+            docs: ["Documento_Reto24H.txt", "Estrategia_Canal.doc", "Rosa_Samuel_Info.log"],
+            downloads: ["Phonk_Pack_Vol4.zip", "AuraOS_Linux_Beta.iso", "Minecraft_Server_Aternos.exe"],
+            games: ["Super Mario Bros Emulator", "Roblox Studio Launcher", "Snake Arcade Ultra Executable"],
+            logs: ["stream_18_may_2026.log", "analytics_subscriber_90.txt"]
+        };
+        function loadFolder(folderKey) {
+            const main = document.getElementById("explorer-content");
+            main.innerHTML = "";
+            folderData[folderKey].forEach(item => {
+                const div = document.createElement("div");
+                div.className = "explorer-item";
+                div.innerHTML = `<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAPFBMVEX///8AAAD/AJD/mZn/zMz/27b/5ub/8vL////////////09PT29vb4+Pj6+vr8/Pz9/f3///999999AAAAAnRSTlMAgJsrUAAAADBJREFUeNpiYIQCBgYwYIQLMDIwM8AEDAzMCHwGZgR+AzMCv4EZgd/AjMBvYIQCBgYAFZgAn9vcl9IAAAAASUVORK5CYII="><span style="word-break:break-all;">${item}</span>`;
+                div.onclick = () => alert(`Abriendo simulación de archivo: ${item}`);
+                main.appendChild(div);
+            });
+        }
+
+        // --- 6. NAVEGADOR SUPERWIUM 4.0 ---
+        function loadWeb(site) {
+            const view = document.getElementById("browser-viewport");
+            const bar = document.getElementById("browser-url-bar");
+            if (site === 'home') {
+                bar.value = "https://superwium.net/v4";
+                view.innerHTML = `<h3>SuperWium 4.0 Core Engine</h3><p>Estás en el índice principal seguro.</p>`;
+            } else if (site === 'roblox') {
+                bar.value = "https://roblox.com/studio_hub";
+                view.innerHTML = `<h3>Roblox Portal de Desarrolladores</h3><p style="color:#00aa00; font-weight:bold;">Sincronizado con Brookhaven Base Militar.</p><p>Estado: Listo para transmisión en vivo.</p>`;
+            } else if (site === 'youtube') {
+                bar.value = "https://studio.youtube.com/channel/c00lkidd_v2yt";
+                view.innerHTML = `<h3>Estadísticas del canal</h3><p>Progreso actual de la comunidad:</p><h4 style="color:#ff0055;">Suscripciones: 90 / 100 (Faltan 10 para el especial)</h4>`;
+            } else if (site === 'news') {
+                bar.value = "https://retrocore-news.org/xp_systems";
+                view.innerHTML = `<h3>Portal Informativo RetroCore</h3><p>El desarrollo de entornos virtuales controlados ha alcanzado la versión final 5.0 con soporte total para Phonk Music.</p>`;
+            } else if (site === 'changelog') {
+                bar.value = "https://retrocore.net/changelog5";
+                view.innerHTML = `<h3>Novedades de RetroCore 5.0 Ultimate</h3><ul><li>Integración de CMD interactivo</li><li>Inclusión de submenús en el botón de inicio de XP</li><li>Bordes de ventana optimizados de forma nativa</li></ul>`;
+            }
+        }
+
+        // --- 7. MODO STREAMER 3.0 (HIPERACTIVO) ---
+        let streamerActive = false;
+        let streamerTimer;
+        let currentViewers = 314;
+        const chatPoolUsers = ["Rosa_Surv", "Samuel_Gamer", "Madi_Stream", "PhonkBanger", "RetroLover"];
+        const chatPoolTexts = ["¡Qué épico RetroCore 5.0!", "Activa el virus en directo para ver la caída 🔥", "Súbale al phonk de fondo!", "Manda saludos!!", "¡Qué buena barra de tareas azul!", "Rosa sobrevivirá en la base? Jajaja"];
+
+        function toggleStreamMode3() {
+            streamerActive = !streamerActive;
+            const btn = document.getElementById("s-btn-mode");
+            const frame = document.getElementById("streamer-frame");
+            const banner = document.getElementById("streamer-banner");
+            const chatBox = document.getElementById("streamer-chat-box");
+
+            if(streamerActive) {
+                btn.textContent = "MODO STREAMER: ON";
+                btn.style.background = "#00ffff"; btn.style.color = "#000";
+                frame.style.display = "block"; banner.style.display = "flex"; chatBox.style.display = "block";
+                streamerTimer = setInterval(updateStreamActivity, 1100);
+            } else {
+                btn.textContent = "MODO STREAMER: OFF";
+                btn.style.background = "#ff00ff"; btn.style.color = "#fff";
+                frame.style.display = "none"; banner.style.display = "none"; chatBox.style.display = "none";
+                clearInterval(streamerTimer);
+            }
+        }
+        function updateStreamActivity() {
+            currentViewers += Math.floor(Math.random() * 9) - 4;
+            document.getElementById("v-count").textContent = currentViewers;
+
+            const lines = document.getElementById("chat-stream-lines");
+            const user = chatPoolUsers[Math.floor(Math.random() * chatPoolUsers.length)];
+            const text = chatPoolTexts[Math.floor(Math.random() * chatPoolTexts.length)];
+            const d = document.createElement("div");
+            d.style.marginBottom = "5px";
+            d.innerHTML = `<span style="color:#ff00ff; font-weight:bold;">[LIVE]</span> <b>${user}:</b> ${text}`;
+            lines.appendChild(d);
+            
+            const chatBoxContainer = document.getElementById("streamer-chat-box");
+            chatBoxContainer.scrollTop = chatBoxContainer.scrollHeight;
+        }
+
+        // --- 8. JUEGO: SNAKE ARCADE ULTRA ---
+        const canvas = document.getElementById("snakeGameCanvas");
+        const ctx = canvas.getContext("2d");
+        const boxSize = 10;
+        let snake, food, score, maxScore, snakeDir, gameInterval, snakeSpeed;
+        let snakeMode = 'normal';
+
+        maxScore = localStorage.getItem("retroSnakeMax") || 0;
+        document.getElementById("s-high").textContent = maxScore;
+
+        function startSnake() {
+            clearInterval(gameInterval);
+            score = 0; snakeDir = null;
+            document.getElementById("s-score").textContent = score;
+            snake = [{x: 15*boxSize, y: 10*boxSize}];
+            spawnSnakeFood();
+            snakeSpeed = snakeMode === 'turbo' ? 45 : 100;
+            gameInterval = setInterval(gameStep, snakeSpeed);
+        }
+        function spawnSnakeFood() {
+            food = { x: Math.floor(Math.random()*32)*boxSize, y: Math.floor(Math.random()*22)*boxSize };
+        }
+        function setSnakeMode(mode) {
+            snakeMode = mode;
+            document.getElementById("s-mode-lbl").textContent = mode.toUpperCase();
+            startSnake();
+        }
+        document.addEventListener("keydown", e => {
+            if(e.keyCode == 37 && snakeDir != "RIGHT") snakeDir = "LEFT";
+            if(e.keyCode == 38 && snakeDir != "DOWN") snakeDir = "UP";
+            if(e.keyCode == 39 && snakeDir != "LEFT") snakeDir = "RIGHT";
+            if(e.keyCode == 40 && snakeDir != "UP") snakeDir = "DOWN";
+        });
+        function gameStep() {
+            ctx.fillStyle = "#0d0d0d"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            for(let i=0; i<snake.length; i++){
+                ctx.fillStyle = i==0 ? "#398a23" : "#ffffff";
+                ctx.fillRect(snake[i].x, snake[i].y, boxSize, boxSize);
+            }
+            ctx.fillStyle = "#ff3333"; ctx.fillRect(food.x, food.y, boxSize, boxSize);
+
+            let headX = snake[0].x; let headY = snake[0].y;
+            if(snakeDir == "LEFT") headX -= boxSize; if(snakeDir == "UP") headY -= boxSize;
+            if(snakeDir == "RIGHT") headX += boxSize; if(snakeDir == "DOWN") headY += boxSize;
+
+            if (snakeMode === 'infinite') {
+                if(headX < 0) headX = canvas.width - boxSize; if(headX >= canvas.width) headX = 0;
+                if(headY < 0) headY = canvas.height - boxSize; if(headY >= canvas.height) headY = 0;
+            }
+
+            if(headX == food.x && headY == food.y) {
+                score++;
+                document.getElementById("s-score").textContent = score;
+                playOscillatorSound(880, 60);
+                if(score > maxScore) {
+                    maxScore = score;
+                    localStorage.setItem("retroSnakeMax", maxScore);
+                    document.getElementById("s-high").textContent = maxScore;
+                }
+                spawnSnakeFood();
+            } else {
+                if(snakeDir) snake.pop();
+            }
+
+            let newHead = {x: headX, y: headY};
+            if(snakeDir) {
+                if(snakeMode !== 'infinite' && (headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height)) {
+                    endSnakeGame(); return;
+                }
+                if(snake.some(s => s.x == newHead.x && s.y == newHead.y)) {
+                    endSnakeGame(); return;
+                }
+                snake.unshift(newHead);
+            }
+        }
+        function endSnakeGame() {
+            clearInterval(gameInterval);
+            playOscillatorSound(180, 350);
+            ctx.fillStyle = "orange"; ctx.font = "14pt monospace";
+            ctx.fillText("ANULADO / GAME OVER", 60, 110);
+        }
+
+        // --- 9. RETROMUSIC PLAYER SIMULADO ---
+        const tracks = ["Bass_Phonk_Special.mp3", "Hyper_Synthwave_XP.mp3", "AuraOS_Symphony_6.mp3"];
+        let trackIdx = 0; let mTimer; let mBarVal = 0;
+        function controlMusic(action) {
+            const title = document.getElementById("track-title");
+            const status = document.getElementById("track-status");
+            const bar = document.getElementById("m-bar");
+            if(action === 'play') {
+                title.textContent = tracks[trackIdx];
+                status.textContent = "Estado: Reproduciendo...";
+                clearInterval(mTimer);
+                mTimer = setInterval(() => {
+                    mBarVal = (mBarVal + 5) % 105;
+                    bar.style.width = mBarVal + "%";
+                }, 400);
+            } else if(action === 'pause' || action === 'stop') {
+                status.textContent = "Estado: Detenido";
+                clearInterval(mTimer);
+                if(action === 'stop') { mBarVal = 0; bar.style.width = "0%"; }
+            } else if(action === 'next') {
+                trackIdx = (trackIdx + 1) % tracks.length; controlMusic('play');
+            } else if(action === 'prev') {
+                trackIdx = (trackIdx - 1 + tracks.length) % tracks.length; controlMusic('play');
+            }
+        }
+
+        // --- 10. CMD RETROCORE INTERACTIVO ---
+        function handleCmd(event) {
+            if(event.key === 'Enter') {
+                const f = document.getElementById("cmd-input-field");
+                const h = document.getElementById("cmd-history");
+                const val = f.value.toLowerCase().trim();
+                let output = "";
+
+                if(val === 'help') {
+                    output = "Comandos:\\n version - Versión del SO\\n stream_status - Estatus del stream\\n virus_test - Demo de malware\\n snake_stats - Récord de juego\\n clear - Limpiar consola";
+                } else if(val === 'version') {
+                    output = "RetroCore Windows 5.0 [Utimate Stream Edition 2026]";
+                } else if(val === 'stream_status') {
+                    output = streamerActive ? "ACTIVO | Transmitiendo en vivo" : "APAGADO | Inicie desde la barra de tareas";
+                } else if(val === 'virus_test') {
+                    output = "Disparando llamada al laboratorio..."; setTimeout(() => runVirusStage1(), 1000);
+                } else if(val === 'snake_stats') {
+                    output = `Récord guardado en memoria local: ${maxScore} puntos.`;
+                } else if(val === 'clear') {
+                    h.innerHTML = ""; f.value = ""; return;
+                } else {
+                    output = `'${val}' no se reconoce como un comando interno de RetroCore.`;
+                }
+                h.innerHTML += `\\nC:\\\\Angelo_OS>${f.value}\\n${output}`;
+                f.value = "";
+                h.parentElement.scrollTop = h.parentElement.scrollHeight;
+            }
+        }
+
+        // --- 11. VIRUS LAB XTREME (4 ETAPAS FALSAS) ---
+        function runVirusStage1() {
+            closeWindow('win-virus');
+            openWindow('win-virus');
+            document.getElementById("virus-lab-body").innerHTML = `<h4 style="color:red;">[FASE 1]: Troyano de laboratorio inyectado visualmente en memoria ficticia.</h4>
+            <p>Se ha comprometido el renderizador visual del escritorio simulado.</p>
+            <button class="nav-btn" onclick="runVirusStage2()">Proceder a Fase 2</button>`;
+            playOscillatorSound(600, 150);
+        }
+        function runVirusStage2() {
+            document.getElementById("desktop").style.backgroundImage = "none";
+            document.getElementById("desktop").style.backgroundColor = "#111111";
+            document.querySelectorAll('.window').forEach(w => w.classList.add('vibrate-active'));
+            document.getElementById("virus-lab-body").innerHTML = `<h4 style="color:darkred;">[FASE 2]: Infección visual gráfica activa en cascada.</h4>
+            <p>Las ventanas tiemblan por desbordamiento ficticio.</p>
+            <button class="nav-btn" onclick="runVirusStage3()">Proceder a Fase 3</button>`;
+            playOscillatorSound(320, 400);
+        }
+        function runVirusStage3() {
+            document.querySelectorAll('.window').forEach(w => w.style.display = "none");
+            document.getElementById("virus-ransom-box").style.display = "block";
+            playOscillatorSound(200, 600);
+        }
+        function triggerBsodStage4() {
+            document.getElementById("virus-ransom-box").style.display = "none";
+            document.getElementById("bsod").style.display = "block";
+            playOscillatorSound(110, 1200);
+        }
+
+        // --- 12. GENERADOR DE AUDIO NATIVO WEB API ---
+        function playOscillatorSound(frequency, duration) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                osc.type = 'square'; osc.frequency.value = frequency;
+                osc.connect(audioCtx.destination); osc.start();
+                setTimeout(() => osc.stop(), duration);
+            } catch(e) { console.log("Audio Web omitido por el navegador."); }
+        }
+
+        // --- 13. RELOJ DIGITAL COMPLETO ---
+        setInterval(() => {
+            const date = new Date();
+            let h = date.getHours(); let m = date.getMinutes(); let s = date.getSeconds();
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12; h = h ? h : 12;
+            m = m < 10 ? '0' + m : m; s = s < 10 ? '0' + s : s;
+            document.getElementById("digital-clock").textContent = `${h}:${m}:${s} ${ampm}`;
+        }, 1000);
+    </script>
+</body>
+</html>
