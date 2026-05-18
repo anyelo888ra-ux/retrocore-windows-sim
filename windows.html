@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetroCore OS</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: #008080; /* Teal Clásico de Windows 95 */
+            margin: 0;
+            padding: 0;
+            font-family: 'Tahoma', 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        /* BARRA DE TAREAS */
+        #taskbar {
+            background-color: #c0c0c0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 38px;
+            border-top: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+            z-index: 9999;
+            box-shadow: inset 1px 1px #dfdfdf;
+        }
+
+        #start-button {
+            height: 28px;
+            width: 80px;
+            background-color: #c0c0c0;
+            border: 2px solid;
+            border-color: #fff #0a0a0a #0a0a0a #fff;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            gap: 5px;
+            font-size: 11pt;
+        }
+
+        #start-button:active, #start-button.active {
+            border-color: #0a0a0a #fff #fff #0a0a0a;
+            padding: 1px 0 0 1px;
+        }
+
+        #taskbar-time {
+            margin-left: auto;
+            border: 2px solid;
+            border-color: #808080 #fff #fff #808080;
+            padding: 2px 8px;
+            font-size: 10pt;
+            background-color: #c0c0c0;
+        }
+
+        /* MENU INICIO */
+        #start-menu {
+            position: fixed;
+            bottom: 38px;
+            left: 2px;
+            width: 180px;
+            background-color: #c0c0c0;
+            border: 2px solid;
+            border-color: #fff #0a0a0a #0a0a0a #fff;
+            display: none;
+            z-index: 10000;
+            flex-direction: column;
+            padding: 2px;
+        }
+
+        .menu-item {
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 10pt;
+        }
+
+        .menu-item:hover {
+            background-color: #000080;
+            color: white;
+        }
+
+        /* ESCRITORIO */
+        #desktop {
+            width: 100%;
+            height: calc(100vh - 38px);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+
+        .desktop-icon {
+            width: 80px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            font-size: 10pt;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-shadow: 1px 1px 1px black;
+        }
+
+        .desktop-icon img {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 5px;
+        }
+
+        /* VENTANAS */
+        .window {
+            width: 450px;
+            background-color: #c0c0c0;
+            border: 2px solid;
+            border-color: #fff #0a0a0a #0a0a0a #fff;
+            position: absolute;
+            z-index: 100;
+            display: none;
+            box-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+        }
+
+        .window-header {
+            background: linear-gradient(90deg, #000080, #1084d0);
+            color: white;
+            font-weight: bold;
+            padding: 4px 6px;
+            font-size: 10pt;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 2px;
+        }
+
+        .window-controls button {
+            background-color: #c0c0c0;
+            border: 1px solid;
+            border-color: #fff #0a0a0a #0a0a0a #fff;
+            width: 16px;
+            height: 14px;
+            font-size: 9px;
+            font-weight: bold;
+            line-height: 10px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .window-controls button:active {
+            border-color: #0a0a0a #fff #fff #0a0a0a;
+        }
+
+        .window-body {
+            padding: 10px;
+            font-size: 10pt;
+            color: black;
+        }
+
+        /* JUEGO: SNAKE */
+        #snakeGameCanvas {
+            border: 2px solid;
+            border-color: #808080 #fff #fff #808080;
+            background-color: black;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* VIRUS EFECTOS */
+        .error-flashing {
+            animation: flashRed 0.4s infinite;
+        }
+
+        @keyframes flashRed {
+            0% { border-color: #fff #0a0a0a #0a0a0a #fff; }
+            50% { border-color: red; box-shadow: 0 0 10px red; }
+            100% { border-color: #fff #0a0a0a #0a0a0a #fff; }
+        }
+
+        #virusMessageBox {
+            width: 320px;
+            background-color: #c0c0c0;
+            border: 2px solid;
+            border-color: #fff #0a0a0a #0a0a0a #fff;
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 99999;
+            display: none;
+            box-shadow: 3px 3px 10px black;
+        }
+
+        /* PANTALLA AZUL (BSOD) */
+        #bsod {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #0000aa;
+            color: white;
+            font-family: 'Courier New', monospace;
+            padding: 50px;
+            font-size: 14pt;
+            z-index: 999999;
+            display: none;
+            box-shadow: none;
+        }
+
+        .bsod-center {
+            background-color: white;
+            color: #0000aa;
+            padding: 2px 8px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="desktop">
+        <div class="desktop-icon" onclick="openWindow('snakeGameWindow')">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAbFBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACEq+R/AAAAA3RSTlMAVv+P8v4A8wAAACpJREFUeNpjYMAGhgsYfWAG5wBOMDkGZgXwYMAHYAZ5BkgAnkByAM5gkAAAmKcBv93pB58AAAAASUVORK5CYII=">
+            <span>Snake 3D</span>
+        </div>
+
+        <div class="desktop-icon" onclick="openWindow('virusLabWindow')">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAWlBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACEq+R/AAAAA3RSTlMAVv+P8v4A8wAAACBJREFUeNpjYEADKAZ5BkgA+kGeAREAnEGeAREAORgkAAAf3ACX0f80AAAAAElFTkSuQmCC">
+            <span>Virus Lab</span>
+        </div>
+    </div>
+
+    <div class="window" id="snakeGameWindow" style="left: 80px; top: 60px;">
+        <div class="window-header">
+            <span>RetroCore: Snake Clásico</span>
+            <div class="window-controls">
+                <button onclick="minimizeWindow('snakeGameWindow')">_</button>
+                <button onclick="closeWindow('snakeGameWindow')">X</button>
+            </div>
+        </div>
+        <div class="window-body">
+            <canvas id="snakeGameCanvas" width="300" height="300"></canvas>
+            <p style="text-align: center; margin: 5px 0 0 0; font-weight: bold;">Score: <span id="scoreBoard">0</span></p>
+        </div>
+    </div>
+
+    <div class="window" id="virusLabWindow" style="left: 200px; top: 120px;">
+        <div class="window-header">
+            <span>RetroCore Antivirus & Lab</span>
+            <div class="window-controls">
+                <button onclick="closeWindow('virusLabWindow')">X</button>
+            </div>
+        </div>
+        <div class="window-body" id="labBody">
+            <p><b>¡Advertencia!</b> Este entorno simula código ejecutable potencialmente peligroso de 2 etapas en un ambiente seguro.</p>
+            <hr>
+            <p>Estado del Sistema: <span style="color: green; font-weight: bold;">Protegido</span></p>
+            <button onclick="startVirusStage1()" style="padding: 5px 10px; cursor: pointer;">Ejecutar Etapa 1</button>
+        </div>
+    </div>
+
+    <div id="virusMessageBox">
+        <div class="window-header" style="background: linear-gradient(90deg, #8b0000, #ff0000);">
+            <span>FATAL SYSTEM ERROR</span>
+        </div>
+        <div class="window-body" style="background-color: #c0c0c0; text-align: center;">
+            <p style="color: red; font-weight: bold; font-size: 12pt;">¡AMENAZA CRÍTICA DETECTADA!</p>
+            <p>El sistema operativo RetroCore ha sido comprometido por el script del laboratorio.</p>
+            <button onclick="triggerBSOD()" style="padding: 3px 15px; font-weight: bold; cursor: pointer;">Aceptar</button>
+        </div>
+    </div>
+
+    <div id="bsod">
+        <p class="bsod-center">RetroCore OS</p>
+        <p>Se ha encontrado un problema y RetroCore se ha apagado para evitar daños al simulador.</p>
+        <p><b>ERROR_CODE: 0x000000C2 (FATAL_ANGELO_VIRUS_LAB)</b></p>
+        <p>Si esta es la primera vez que ve esta pantalla de error de detención, reinicie su navegador presionando F5.</p>
+        <p>Información técnica:</p>
+        <p>*** STOP: 0x000000D1 (0x0000000C, 0x00000002, 0x00000000, 0xF73120AE)</p>
+        <p>*** auraoslinux.sys - Address F73120AE base at F7312000, DateStamp 36b072a3</p>
+        <br>
+        <p style="text-align: center;">Presione F5 para reinstalar o refrescar el sistema...</p>
+    </div>
+
+    <div id="start-menu">
+        <div class="menu-item" onclick="openWindow('snakeGameWindow'); toggleStartMenu();">🎮 Ejecutar Snake</div>
+        <div class="menu-item" onclick="openWindow('virusLabWindow'); toggleStartMenu();">🧪 Laboratorio Virus</div>
+        <hr style="width: 95%; margin: 2px auto;">
+        <div class="menu-item" onclick="location.reload();">🔄 Reiniciar Sistema</div>
+    </div>
+
+    <div id="taskbar">
+        <div id="start-button" onclick="toggleStartMenu()">
+            🌐 Inicio
+        </div>
+        <div id="taskbar-time">00:00</div>
+    </div>
+
+    <script>
+        let zIndex = 100;
+
+        // CONTROLES DE VENTANAS
+        function openWindow(id) {
+            const win = document.getElementById(id);
+            win.style.display = 'block';
+            win.style.zIndex = ++zIndex;
+            if(id === 'snakeGameWindow') startSnakeGame();
+        }
+        function closeWindow(id) { document.getElementById(id).style.display = 'none'; }
+        function minimizeWindow(id) { document.getElementById(id).style.display = 'none'; }
+
+        function toggleStartMenu() {
+            const menu = document.getElementById('start-menu');
+            const btn = document.getElementById('start-button');
+            if(menu.style.display === 'flex') {
+                menu.style.display = 'none';
+                btn.classList.remove('active');
+            } else {
+                menu.style.display = 'flex';
+                btn.classList.add('active');
+            }
+        }
+
+        // ARRASTRE DE VENTANAS
+        document.querySelectorAll('.window').forEach(win => {
+            const header = win.querySelector('.window-header');
+            header.addEventListener('mousedown', (e) => {
+                if(e.target.tagName === 'BUTTON') return;
+                let shiftX = e.clientX - win.getBoundingClientRect().left;
+                let shiftY = e.clientY - win.getBoundingClientRect().top;
+                win.style.zIndex = ++zIndex;
+                function moveAt(pageX, pageY) {
+                    win.style.left = pageX - shiftX + 'px';
+                    win.style.top = pageY - shiftY + 'px';
+                }
+                function onMouseMove(e) { moveAt(e.clientX, e.clientY); }
+                document.addEventListener('mousemove', onMouseMove);
+                document.onmouseup = function() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.onmouseup = null;
+                };
+            });
+        });
+
+        // HORA
+        function updateTime() {
+            const now = new Date();
+            let hr = now.getHours();
+            let min = now.getMinutes();
+            let ampm = hr >= 12 ? 'PM' : 'AM';
+            hr = hr % 12 || 12;
+            min = min < 10 ? '0'+min : min;
+            document.getElementById('taskbar-time').textContent = `${hr}:${min} ${ampm}`;
+        }
+        setInterval(updateTime, 1000); updateTime();
+
+        // JUEGO: SNAKE
+        const canvas = document.getElementById('snakeGameCanvas');
+        const ctx = canvas.getContext('2d');
+        const box = 20;
+        let snake, food, score, d, gameInterval;
+
+        function startSnakeGame() {
+            clearInterval(gameInterval);
+            score = 0; d = null; snake = [{x: 8*box, y: 8*box}];
+            document.getElementById('scoreBoard').textContent = score;
+            spawnFood();
+            gameInterval = setInterval(drawSnake, 130);
+        }
+        function spawnFood() {
+            food = { x: Math.floor(Math.random()*14+1)*box, y: Math.floor(Math.random()*14+1)*box };
+        }
+        document.addEventListener("keydown", e => {
+            if(e.keyCode == 37 && d != "RIGHT") d = "LEFT";
+            if(e.keyCode == 38 && d != "DOWN") d = "UP";
+            if(e.keyCode == 39 && d != "LEFT") d = "RIGHT";
+            if(e.keyCode == 40 && d != "UP") d = "DOWN";
+        });
+
+        function drawSnake() {
+            ctx.fillStyle = "#000"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            for(let i=0; i<snake.length; i++) {
+                ctx.fillStyle = i==0 ? "#00ff00" : "#ffffff";
+                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+            }
+            ctx.fillStyle = "#ff0000"; ctx.fillRect(food.x, food.y, box, box);
+            let sx = snake[0].x, sy = snake[0].y;
+            if(d == "LEFT") sx -= box; if(d == "UP") sy -= box;
+            if(d == "RIGHT") sx += box; if(d == "DOWN") sy += box;
+
+            if(sx == food.x && sy == food.y) {
+                score++; document.getElementById('scoreBoard').textContent = score; spawnFood();
+            } else { snake.pop(); }
+            let head = {x: sx, y: sy};
+            if(sx<0 || sx>=canvas.width || sy<0 || sy>=canvas.height || snake.some(s=>s.x==head.x && s.y==head.y)) {
+                clearInterval(gameInterval);
+                ctx.fillStyle = "red"; ctx.font = "16pt Tahoma"; ctx.fillText("GAME OVER", 90, 150);
+                return;
+            }
+            snake.unshift(head);
+        }
+
+        // VIRUS LAB ACTIONS
+        function startVirusStage1() {
+            const win = document.getElementById('virusLabWindow');
+            win.classList.add('error-flashing');
+            document.getElementById('labBody').innerHTML = `
+                <p style="color: red; font-weight: bold;">[ETAPA 1]: Troyano Inyectado.</p>
+                <p>El registro del sistema se está corrompiendo. El mouse se descalibrará.</p>
+                <br>
+                <button onclick="startVirusStage2()" style="padding: 5px; color: black; font-weight:bold; cursor:pointer;">Ir a Etapa 2 (Crítica)</button>
+            `;
+            beep(500, 200);
+        }
+
+        function startVirusStage2() {
+            closeWindow('virusLabWindow');
+            document.getElementById('desktop').style.cursor = 'not-allowed';
+            document.getElementById('desktop').style.backgroundColor = '#1a1a1a';
+            document.getElementById('virusMessageBox').style.display = 'block';
+            beep(300, 500);
+        }
+
+        function triggerBSOD() {
+            document.getElementById('virusMessageBox').style.display = 'none';
+            document.getElementById('bsod').style.display = 'block';
+            beep(150, 800);
+        }
+
+        function beep(freq, duration) {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            osc.type = 'square'; osc.frequency.value = freq;
+            osc.connect(audioCtx.destination); osc.start();
+            setTimeout(() => osc.stop(), duration);
+        }
+    </script>
+</body>
+</html>
