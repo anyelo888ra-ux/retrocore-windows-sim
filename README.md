@@ -4,7 +4,7 @@ Welcome to **RetroCore**, a high-fidelity retro Windows operating system simulat
 
 ## 🚀 Live Demo
 Once GitHub Pages is activated, you can access the simulator live here:
-`https://your-github-username.github.io/retrocore-windows-sim/`
+`https://github.com/anyelo888ra-ux/retrocore-windows-sim`
 
 ## 🌟 Key Features
 
