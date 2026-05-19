@@ -5,6 +5,9 @@ Inspirado en las versiones clásicas de Windows.
 ✔️ Interfaz auténtica y elementos clásicos  
 ✔️ Sin instalación, solo abre el `.html` en tu navegador
 
+### 📺 Mira el video demo de RetroCore y AuraOS
+[YouTube: c00lcompany AuraOS Linux](https://www.youtube.com/@c00lcompanyauraoslinux)
+
 ## ¿Por qué este proyecto?
 Después de crear [AuraOS Linux](https://github.com/anyelo888ra-ux/auraoslinux), decidí que sería divertido crear un OS retro para los fans de la informática clásica.
 
